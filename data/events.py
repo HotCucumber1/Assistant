@@ -1,5 +1,6 @@
 import datetime as dt
 import sqlalchemy
+from sqlalchemy import orm
 from sqlalchemy import Integer, String, Date, Time
 from .db_session import SqlAlchemyBase
 
@@ -12,3 +13,5 @@ class Event(SqlAlchemyBase):
     number_of_notes = sqlalchemy.Column(Integer, nullable=True)
     date = sqlalchemy.Column(Date, nullable=True)
     time = sqlalchemy.Column(Time, nullable=True)
+
+    events = orm.relationship("Note", back_populates="event")
