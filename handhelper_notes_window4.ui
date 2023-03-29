@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>myNotesWindow</class>
+ <widget class="QMainWindow" name="myNotesWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Мои заметки</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="horizontalLayout">
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <widget class="QCalendarWidget" name="calendarWidget">
+        <property name="font">
+         <font>
+          <family>Century Gothic</family>
+         </font>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QRadioButton" name="showOnlyEventsRadButton">
+        <property name="font">
+         <font>
+          <family>Century Gothic</family>
+         </font>
+        </property>
+        <property name="text">
+         <string>Показывать только события</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QRadioButton" name="showOnlyNotesRadButton">
+        <property name="font">
+         <font>
+          <family>Century Gothic</family>
+         </font>
+        </property>
+        <property name="text">
+         <string>Показывать только заметки</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QRadioButton" name="showBothRadButton">
+        <property name="font">
+         <font>
+          <family>Century Gothic</family>
+         </font>
+        </property>
+        <property name="text">
+         <string>Показывать события с замеками</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="showCurrentDayButton">
+        <property name="font">
+         <font>
+          <family>Century Gothic</family>
+         </font>
+        </property>
+        <property name="text">
+         <string>Показать на выбранный день</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="showAllnoteButton">
+        <property name="font">
+         <font>
+          <family>Century Gothic</family>
+         </font>
+        </property>
+        <property name="text">
+         <string>Показать все</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <widget class="QPlainTextEdit" name="plainTextEdit">
+        <property name="font">
+         <font>
+          <family>Century Gothic</family>
+         </font>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label">
+        <property name="font">
+         <font>
+          <family>Century Gothic</family>
+          <pointsize>10</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Показать только:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="selectEventBox">
+        <property name="font">
+         <font>
+          <family>Century Gothic</family>
+         </font>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="showSelectedEventButton">
+        <property name="font">
+         <font>
+          <family>Century Gothic</family>
+         </font>
+        </property>
+        <property name="text">
+         <string>Показать</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="saveAsFileButton">
+        <property name="font">
+         <font>
+          <family>Century Gothic</family>
+         </font>
+        </property>
+        <property name="text">
+         <string>Сохранить в файл</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>800</width>
+     <height>26</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

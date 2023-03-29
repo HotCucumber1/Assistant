@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Form</class>
+ <widget class="QWidget" name="Form">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>540</width>
+    <height>344</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>О приложении</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QPlainTextEdit" name="plainTextEdit">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="plainText">
+      <string>&quot;Помощник - приложение для хранения, просмотра и создания событий и заметок, привязанных к определённой дате.
+
+Для просмотра событий необходимо нажать кнопку &quot;Мои заметки&quot;, выбрать дату на календаре слева или назавние события в списке справа. Событие отобразиться в специальном виджете.  Нажав кнопку &quot;Сохранить как файл&quot; вы сможете сохранить события, показанные в окне, файлом
+
+Для добавления события необходимо нажать кнопку &quot;Добавить событие&quot;. В открывшемся окне выберите дату, время и введите событие. Нажмите кнопку &quot;Добавить&quot;. Событие сохранено.
+
+Для добавления заметки к событию необходимо нажать кнопку &quot;Добавить заметку&quot;. В открывшемя окне выберите событие, к которому хотите привязать заметку, введите текст заметки, нажмите кнопку &quot;Добавить&quot;. Заметка сохранена.
+
+При нажатии на кнопку &quot;Получить таблицу с событиями&quot;, в папке с приложением создаётся таблица, в которой содержаться все ваши событияю </string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
