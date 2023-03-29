@@ -12,6 +12,8 @@ from handhelper_add_event_window4 import Ui_addeventWindow
 from about_window import Ui_Form
 
 from data import db_session
+from data.events import Event
+from data.notes import Note
 
 
 # функция отображения окна с сообщением
@@ -320,7 +322,7 @@ class AddEventWindow(QWidget, Ui_addeventWindow):  # окно добавлени
             show_message('Ошибка', 'Непредвиденная ошибка')
 
 
-class About(QWidget, Ui_Form): # окно с информацией о приложении
+class About(QWidget, Ui_Form):  # окно с информацией о приложении
     def __init__(self, *args):
         super().__init__()
         self.setupUi(self)
@@ -332,9 +334,10 @@ def except_hook(cls, exception, traceback):
 
 if __name__ == '__main__':
     db_session.global_init("db/new_events_db.db")
+    db_sess = db_session.create_session()
 
-    app = QApplication(sys.argv)
-    wnd = Main()
-    wnd.show()
-    sys.excepthook = except_hook
-    sys.exit(app.exec())
+    # app = QApplication(sys.argv)
+    # wnd = Main()
+    # wnd.show()
+    # sys.excepthook = except_hook
+    # sys.exit(app.exec())
