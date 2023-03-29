@@ -46,22 +46,23 @@ class Main(QMainWindow, Ui_MainWindow):  # главный экран
     def __init__(self):
         super().__init__()
         self.setupUi(self)
-        self.connection = sqlite3.connect('./MyDB.db')  # подключение базы данных
-        self.cursor = self.connection.cursor()
         self.today = dt.date.today()
 
         # вывод сообщения о сегодняшнем событии
         try:
-            self.today_events = self.connection.cursor().execute(
-                """SELECT event_name, time FROM events WHERE date = ?""",
-                (str(self.today),))
-            if bool(self.today_events):
+            today_events = db_sess.query(Event).filter(Event.date == self.today).all()
+
+            if bool(today_events):
                 self.text = 'На сегодня запланированы:\n'
-                for num, event in enumerate(self.today_events):
-                    if event[1] is None:
-                        self.text = self.text + f'{num + 1}) {event[0]}\n Время: весь день\n'
+                num = 1
+                for event in today_events:
+                    if event.time is None:
+                        time = "весь день\n"
                     else:
-                        self.text = self.text + f'{num + 1}) {event[0]}\n Время: {event[1]}\n'
+                        time = event.time.strftime("%H:%M")
+                    self.text += f"{num}) {event.event_name}\n    Время: {time}"
+                    num += 1
+
                 show_message('Напоминание', self.text)
         except Exception:
             show_message('Ошибка', 'Непредвиденная ошибка')
@@ -109,9 +110,6 @@ class Main(QMainWindow, Ui_MainWindow):  # главный экран
     def about(self):  # показать окно с описанием приложения
         self.about_window = About(self)
         self.about_window.show()
-
-    def closeEvent(self, event):
-        self.connection.close()
 
 
 class NoteWindow(QMainWindow, Ui_myNotesWindow):  # окно поиска (навигации) по заметкам и событиям к ним
