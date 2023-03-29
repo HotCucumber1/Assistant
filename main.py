@@ -46,6 +46,8 @@ class Main(QMainWindow, Ui_MainWindow):  # главный экран
     def __init__(self):
         super().__init__()
         self.setupUi(self)
+        self.connection = sqlite3.connect('./MyDB.db')  # подключение базы данных
+        self.cursor = self.connection.cursor()
         self.today = dt.date.today()
 
         # вывод сообщения о сегодняшнем событии
@@ -110,6 +112,9 @@ class Main(QMainWindow, Ui_MainWindow):  # главный экран
     def about(self):  # показать окно с описанием приложения
         self.about_window = About(self)
         self.about_window.show()
+
+    def closeEvent(self, event):
+        self.connection.close()
 
 
 class NoteWindow(QMainWindow, Ui_myNotesWindow):  # окно поиска (навигации) по заметкам и событиям к ним
