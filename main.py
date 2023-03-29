@@ -11,6 +11,8 @@ from handhelper_add_note_window2 import Ui_addNoteWidget
 from handhelper_add_event_window4 import Ui_addeventWindow
 from about_window import Ui_Form
 
+from data import db_session
+
 
 # функция отображения окна с сообщением
 def show_message(name, message_text):
@@ -329,6 +331,8 @@ def except_hook(cls, exception, traceback):
 
 
 if __name__ == '__main__':
+    db_session.global_init("db/new_events_db.db")
+
     app = QApplication(sys.argv)
     wnd = Main()
     wnd.show()
