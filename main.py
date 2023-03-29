@@ -46,7 +46,7 @@ class Main(QMainWindow, Ui_MainWindow):  # главный экран
     def __init__(self):
         super().__init__()
         self.setupUi(self)
-        self.connection = sqlite3.connect('./MyDB.db') # подключение базы данных
+        self.connection = sqlite3.connect('./MyDB.db')  # подключение базы данных
         self.cursor = self.connection.cursor()
         self.today = dt.date.today()
 
@@ -91,19 +91,17 @@ class Main(QMainWindow, Ui_MainWindow):  # главный экран
 
     def get_events_like_table(self):  # получить все события как таблицу (возможность сохранить как .csv файл)
         try:
-            with open('Мои записи.csv', mode='w', newline='', encoding='utf8') as table:
+            with open('Мои записи.csv', mode='w', newline='', encoding='utf-8') as table:
                 writer = csv.writer(table, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
                 writer.writerow(['id', 'event', 'notes', 'date', 'time'])
-                self.ides = self.cursor.execute("""SELECT id FROM events""").fetchall()
-                self.ides = sorted([i[0] for i in self.ides])
-                for i in self.ides:
-                    self.notes_text = ''
-                    self.result = self.cursor.execute("""SELECT * FROM events WHERE id = ?""", (i,)).fetchone()
-                    self.notes = self.cursor.execute("""SELECT note_name FROM notes WHERE event = ?""", (i,)).fetchall()
-                    for i in self.notes:
-                        self.notes_text += f"{''.join(i)}\n"
-                    writer.writerow([self.result[0], str(self.result[1]), str(self.notes_text), self.result[3], self.result[4]])
+                for event in db_sess.query(Event).all():
+                    notes_text = ''
+                    for note in db_sess.query(Note).filter(Note.event_id == event.id).all():
+                        notes_text += note.note_name + '\n'
+
+                    writer.writerow([event.id, event.event_name, notes_text, str(event.date), str(event.time)])
+
             show_message('Успех', 'Файл успешно сохранён')
         except Exception:
             show_message('Ошибка', 'Непредвиденная ошибка')
@@ -277,7 +275,7 @@ class AddNoteWindow(QWidget, Ui_addNoteWidget):  # окно добавления
             self.result = self.cursor.execute("""UPDATE events SET number_of_notes = number_of_notes + 1 
                                                 WHERE event_name = ?""", (self.chooseEventBox.currentText(),))
             self.connection.commit()
-            show_message('Успех', 'Замтека успешно сохранена')
+            show_message('Успех', 'Заметка успешно сохранена')
         except EmptyEventError:
             show_message('Ошибка', 'Пустая заметка')
         except Exception:
@@ -336,8 +334,8 @@ if __name__ == '__main__':
     db_session.global_init("db/new_events_db.db")
     db_sess = db_session.create_session()
 
-    # app = QApplication(sys.argv)
-    # wnd = Main()
-    # wnd.show()
-    # sys.excepthook = except_hook
-    # sys.exit(app.exec())
+    app = QApplication(sys.argv)
+    wnd = Main()
+    wnd.show()
+    sys.excepthook = except_hook
+    sys.exit(app.exec())
