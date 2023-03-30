@@ -82,11 +82,11 @@ class Main(QMainWindow, Ui_MainWindow):  # главный экран
         self.getEventsLikeTableButton.clicked.connect(self.get_events_like_table)
 
     def show_my_note(self):   # открыть окно со всеми событиями и заметками к ним
-        self.note_window = NoteWindow(self, self.connection)
+        self.note_window = NoteWindow(self)
         self.note_window.show()
 
     def add_new_note(self):  # открыть окно с возможностью добавить заметку
-        self.add_note_window = AddNoteWindow(self, self.connection)
+        self.add_note_window = AddNoteWindow(self)
         self.add_note_window.show()
 
     def add_event(self):  # открыть окно с возможностью добавить событие
@@ -119,11 +119,9 @@ class Main(QMainWindow, Ui_MainWindow):  # главный экран
 
 
 class NoteWindow(QMainWindow, Ui_myNotesWindow):  # окно поиска (навигации) по заметкам и событиям к ним
-    def __init__(self, *args):
+    def __init__(self):
         super().__init__()
         self.setupUi(self)
-        self.connection = args[-1]
-        self.cursor = self.connection.cursor()
 
         self.result = db_sess.query(Event).all()
         self.selectEventBox.addItems([''.join(i.event_name).rstrip('\n') for i in self.result])
@@ -256,30 +254,32 @@ class NoteWindow(QMainWindow, Ui_myNotesWindow):  # окно поиска (на�
 
 
 class AddNoteWindow(QWidget, Ui_addNoteWidget):  # окно добавления заметки
-    def __init__(self, *args):
+    def __init__(self):
         super().__init__()
         self.setupUi(self)
-        self.connection = args[-1]
-        self.cursor = self.connection.cursor()
-        self.result = self.cursor.execute("""SELECT event_name FROM events""").fetchall()
-        self.chooseEventBox.addItems([''.join(i).rstrip('\n') for i in self.result])
-
+        self.chooseEventBox.addItems([i.event_name for i in db_sess.query(Event)])
         self.addIt.clicked.connect(self.add_note)
 
     def add_note(self):  # добавить написанное как заметку
         try:
-            self.event = self.cursor.execute("""SELECT id FROM events WHERE event_name = ?""",
-                                             (self.chooseEventBox.currentText(),)).fetchone()
+            self.event = db_sess.query(Event).filter(Event.event_name == self.chooseEventBox.currentText()).first().id
             self.note_text = self.plainTextEdit.toPlainText().rstrip('\n')
+
             if self.note_text == '':
                 raise EmptyEventError
-            self.result = self.cursor.execute("""INSERT INTO notes (note_name, event) VALUES (?, ?)""",
-                                              (self.note_text, self.event[0]))
 
-            self.result = self.cursor.execute("""UPDATE events SET number_of_notes = number_of_notes + 1 
-                                                WHERE event_name = ?""", (self.chooseEventBox.currentText(),))
-            self.connection.commit()
+            note = Note()
+            note.note_name = self.note_text
+            note.event_id = self.event
+
+            update = db_sess.query(Event).filter(Event.id == self.event).first()
+            update.number_of_notes += 1
+
+            db_sess.add(note)
+            db_sess.commit()
+
             show_message('Успех', 'Заметка успешно сохранена')
+
         except EmptyEventError:
             show_message('Ошибка', 'Пустая заметка')
         except Exception:
