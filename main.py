@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
 import sys
 import datetime as dt
-import sqlite3
 import csv
 
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QMessageBox, QAction
 
-from handhelper_main_window3 import Ui_MainWindow
-from handhelper_notes_window4 import Ui_myNotesWindow
-from handhelper_add_note_window2 import Ui_addNoteWidget
-from handhelper_add_event_window4 import Ui_addeventWindow
-from about_window import Ui_Form
+from interface.py_files.handhelper_main_window3 import Ui_MainWindow
+from interface.py_files.handhelper_notes_window4 import Ui_myNotesWindow
+from interface.py_files.handhelper_add_note_window2 import Ui_addNoteWidget
+from interface.py_files.handhelper_add_event_window4 import Ui_addeventWindow
+from interface.py_files.about_window import Ui_Form
 
 from data import db_session
 from data.events import Event
