@@ -5,6 +5,7 @@ import sqlite3
 import csv
 
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QMessageBox, QAction
+
 from handhelper_main_window3 import Ui_MainWindow
 from handhelper_notes_window4 import Ui_myNotesWindow
 from handhelper_add_note_window2 import Ui_addNoteWidget
@@ -220,34 +221,35 @@ class NoteWindow(QMainWindow, Ui_myNotesWindow):  # окно поиска (на�
         try:
             self.plainTextEdit.clear()
 
-            self.event = self.cursor.execute("""SELECT id, date, time FROM events WHERE event_name = ?""",
-                                            (self.selectEventBox.currentText(),)).fetchone()
-            self.notes = self.cursor.execute("""SELECT note_name FROM notes WHERE event = ?""",
-                                            (self.event[0],)).fetchall()
-            self.notes = [''.join(i) for i in self.notes]
-            self.plainTextEdit.appendPlainText(self.selectEventBox.currentText())
-            self.plainTextEdit.appendPlainText(f'    Дата: {self.event[1]}')
-            if self.event[2] is None:
+            self.event = db_sess.query(Event).filter(Event.event_name == self.selectEventBox.currentText()).first()
+            self.note = db_sess.query(Note).filter(Note.event_id == self.event.id)
+
+            self.plainTextEdit.appendPlainText(f"{self.event.event_name}")
+            self.plainTextEdit.appendPlainText(f'    Дата: {str(self.event.date)}')
+            if self.event.time is None:
                 self.plainTextEdit.appendPlainText(f'    Время: весь день')
             else:
-                self.plainTextEdit.appendPlainText(f'    Время: {self.event[2]}')
+                self.plainTextEdit.appendPlainText(f'    Время: {self.event.time.strftime("%H:%M")}')
 
-            for note in self.notes:
-                self.plainTextEdit.appendPlainText(f'    *{note}')
+            for note in self.note:
+                self.plainTextEdit.appendPlainText(f'    *{note.note_name}')
+
         except Exception:
             show_message('Ошибка', 'Непредвиденная ошибка')
 
     def save_as_file(self):  # сохранить то, что показано как файл.txt
         try:
             if self.showBothRadButton.isChecked():
-                with open('Мои записи.txt', mode='w', encoding='utf-8') as file:
-                    file.write(self.plainTextEdit.toPlainText())
+                file_name = "Мои записи.txt"
+
             elif self.showOnlyNotesRadButton.isChecked():
-                with open('Мои заметки', mode='w', encoding='utf-8') as file:
-                    file.write(self.plainTextEdit.toPlainText())
+                file_name = "Мои заметки.txt"
+
             elif self.showOnlyEventsRadButton.isChecked():
-                with open('Мои события', mode='w', encoding='utf-8') as file:
-                    file.write(self.plainTextEdit.toPlainText())
+                file_name = "Мои события.txt"
+
+            with open(file_name, mode='w', encoding='utf-8') as file:
+                file.write(self.plainTextEdit.toPlainText())
             show_message('Успех', 'Файл успешно сохранён')
         except Exception:
             show_message('Ошибка', 'Непредвиденная ошибка')
