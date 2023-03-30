@@ -47,8 +47,6 @@ class Main(QMainWindow, Ui_MainWindow):  # главный экран
     def __init__(self):
         super().__init__()
         self.setupUi(self)
-        self.connection = sqlite3.connect('./MyDB.db')  # подключение базы данных
-        self.cursor = self.connection.cursor()
         self.today = dt.date.today()
 
         # вывод сообщения о сегодняшнем событии
@@ -90,7 +88,7 @@ class Main(QMainWindow, Ui_MainWindow):  # главный экран
         self.add_note_window.show()
 
     def add_event(self):  # открыть окно с возможностью добавить событие
-        self.add_event_window = AddEventWindow(self, self.connection)
+        self.add_event_window = AddEventWindow(self)
         self.add_event_window.show()
 
     def get_events_like_table(self):  # получить все события как таблицу (возможность сохранить как .csv файл)
@@ -114,12 +112,9 @@ class Main(QMainWindow, Ui_MainWindow):  # главный экран
         self.about_window = About(self)
         self.about_window.show()
 
-    def closeEvent(self, event):
-        self.connection.close()
-
 
 class NoteWindow(QMainWindow, Ui_myNotesWindow):  # окно поиска (навигации) по заметкам и событиям к ним
-    def __init__(self):
+    def __init__(self, *args):
         super().__init__()
         self.setupUi(self)
 
@@ -254,7 +249,7 @@ class NoteWindow(QMainWindow, Ui_myNotesWindow):  # окно поиска (на�
 
 
 class AddNoteWindow(QWidget, Ui_addNoteWidget):  # окно добавления заметки
-    def __init__(self):
+    def __init__(self, *args):
         super().__init__()
         self.setupUi(self)
         self.chooseEventBox.addItems([i.event_name for i in db_sess.query(Event)])
@@ -277,7 +272,6 @@ class AddNoteWindow(QWidget, Ui_addNoteWidget):  # окно добавления
 
             db_sess.add(note)
             db_sess.commit()
-
             show_message('Успех', 'Заметка успешно сохранена')
 
         except EmptyEventError:
@@ -290,8 +284,6 @@ class AddEventWindow(QWidget, Ui_addeventWindow):  # окно добавлени
     def __init__(self, *args):
         super().__init__()
         self.setupUi(self)
-        self.connection = args[-1]
-        self.cursor = self.connection.cursor()
         self.addIt.clicked.connect(self.add_event)
 
     def add_event(self):  # добавить событие с выбранными датой и временем
@@ -299,23 +291,26 @@ class AddEventWindow(QWidget, Ui_addeventWindow):  # окно добавлени
             self.date = self.calendarWidget.selectedDate().toPyDate()
             self.time = self.timeEdit.time().toPyTime()
             self.event_name = self.plainTextEdit.toPlainText().rstrip('\n')
-            self.we_have = self.cursor.execute("""SELECT event_name FROM events""").fetchall()
 
+            self.we_have = [event.event_name for event in db_sess.query(Event)]
             if str(self.event_name) == '':
                 raise EmptyEventError
-            elif str(self.event_name) in [''.join(i).rstrip('\n') for i in self.we_have]:
+            elif str(self.event_name) in self.we_have:
                 raise WrongEventNameError
-            if self.withoutTimeBox.isChecked():
-                self.result = self.cursor.execute("""INSERT INTO events(event_name, number_of_notes, date, time)
-                                                    VALUES (?, ?, ?, ?)""",
-                                                    (str(self.event_name), 0, str(self.date), None))
-            else:
-                self.result = self.cursor.execute("""INSERT INTO events(event_name, number_of_notes, date, time)
-                                                    VALUES (?, ?, ?, ?)""",
-                                                    (str(self.event_name), 0, str(self.date), str(self.time)))
-            self.connection.commit()
-            show_message('Успех', 'Событие успешно сохранено')
 
+            event = Event()
+            event.event_name = self.event_name
+            event.number_of_notes = 0
+            event.date = self.date
+
+            if self.withoutTimeBox.isChecked():
+                event.time = None
+            else:
+                event.time = self.time
+            db_sess.add(event)
+            db_sess.commit()
+
+            show_message('Успех', 'Событие успешно сохранено')
         except EmptyEventError:
             show_message('Ошибка', 'Пустое событие')
         except WrongEventNameError:

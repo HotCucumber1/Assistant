@@ -20,7 +20,7 @@ def global_init(db_file: str):
     connection = f"sqlite:///{db_file.strip()}?check_same_thread=False"
     print('Подключение к базе данных по адресу:', connection)
 
-    engine = sa.create_engine(connection, echo=True)
+    engine = sa.create_engine(connection, echo=False)
     __factory = orm.sessionmaker(bind=engine)
 
     from data import __all_models
