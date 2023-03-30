@@ -124,8 +124,9 @@ class NoteWindow(QMainWindow, Ui_myNotesWindow):  # окно поиска (на�
         self.connection = args[-1]
         self.cursor = self.connection.cursor()
 
-        self.result = self.cursor.execute("""SELECT event_name FROM events""").fetchall()
-        self.selectEventBox.addItems([''.join(i).rstrip('\n') for i in self.result])
+        # self.result = self.cursor.execute("""SELECT event_name FROM events""").fetchall()
+        self.result = db_sess.query(Event).all()
+        self.selectEventBox.addItems([''.join(i.event_name).rstrip('\n') for i in self.result])
 
         self.showCurrentDayButton.clicked.connect(self.show_current_day)
         self.showAllnoteButton.clicked.connect(self.show_all_note)
@@ -135,65 +136,65 @@ class NoteWindow(QMainWindow, Ui_myNotesWindow):  # окно поиска (на�
         self.showBothRadButton.setChecked(True)
 
     def show_current_day(self):  # показать события на выбранный день
-        try:
-            self.plainTextEdit.clear()
-            self.current_date = self.calendarWidget.selectedDate().toPyDate()
-            if self.showOnlyEventsRadButton.isChecked(): # если выбрано "Показывать только события"
-                self.events = self.cursor.execute("""SELECT event_name FROM events WHERE date = ?""",
+        #try:
+        self.plainTextEdit.clear()
+        self.current_date = self.calendarWidget.selectedDate().toPyDate()
+        if self.showOnlyEventsRadButton.isChecked():  # если выбрано "Показывать только события"
+
+            self.events = db_sess.query(Event).filter(Event.date == self.current_date)
+
+            if not self.events:
+                self.plainTextEdit.appendPlainText("На этот день событий нет")
+            else:
+                num = 1
+                for event in self.events:
+                    self.plainTextEdit.appendPlainText(f"{num}) {event.event_name}")
+                    self.plainTextEdit.appendPlainText(f'    Дата: {str(self.current_date)}')
+                    if event.time is None:
+                        self.plainTextEdit.appendPlainText(f'    Время: весь день')
+                    else:
+                        self.plainTextEdit.appendPlainText(f'    Время: {event.time.strftime("%H:%M")}')
+                self.plainTextEdit.appendPlainText('')
+
+        elif self.showOnlyNotesRadButton.isChecked():  # если выбрано "Показывать только заметки"
+            self.notes = self.cursor.execute("""SELECT note_name FROM notes 
+                                                            WHERE event IN (SELECT id FROM events WHERE date = ?)""",
+                                             (str(self.current_date),)).fetchall()
+            self.notes = [i[0] for i in self.notes]
+
+            if len(self.notes) == 0:
+                self.plainTextEdit.appendPlainText("На этот день заметок нет")
+            else:
+                for num, note in enumerate(self.notes):
+                    self.plainTextEdit.appendPlainText(f"{num + 1}) {note}")
+
+        elif self.showBothRadButton.isChecked():  # если выбрано "Показывать всё"
+            self.events = self.cursor.execute("""SELECT id, event_name FROM events WHERE date = ?""",
                                               (str(self.current_date),)).fetchall()
-                self.events = [''.join(i) for i in self.events]
-                if len(self.events) == 0:
-                    self.plainTextEdit.appendPlainText("На этот день событий нет")
-                else:
-                    for num, event in enumerate(self.events):
-                        self.plainTextEdit.appendPlainText(f"{num + 1}) {event}")
-                        self.plainTextEdit.appendPlainText(f'    Дата: {str(self.current_date)}')
-                        self.event_time = self.cursor.execute(
-                            """SELECT time FROM events WHERE event_name = ?""", (event,)).fetchone()
-                        if self.event_time[0] is None:
-                            self.plainTextEdit.appendPlainText(f'    Время: весь день')
-                        else:
-                            self.plainTextEdit.appendPlainText(f'    Время: {self.event_time[0]}')
-                        self.plainTextEdit.appendPlainText('')
+            if bool(self.events):
+                for num, event in enumerate(self.events):
+                    self.notes = self.cursor.execute(f"""SELECT note_name FROM notes WHERE event = ?""",
+                                                     (event[0],))
+                    self.notes = [''.join(i) for i in self.notes]
 
-            elif self.showOnlyNotesRadButton.isChecked():  # если выбрано "Показывать только заметки"
-                self.notes = self.cursor.execute("""SELECT note_name FROM notes 
-                                                    WHERE event IN (SELECT id FROM events WHERE date = ?)""",
-                                                (str(self.current_date),)).fetchall()
-                self.notes = [i[0] for i in self.notes]
+                    self.plainTextEdit.appendPlainText(f"{num + 1}) {event[1]}")
+                    self.plainTextEdit.appendPlainText(f'    Дата: {str(self.current_date)}')
+                    self.event_time = self.cursor.execute(
+                        """SELECT time FROM events WHERE event_name = ?""", (event[1],)).fetchone()
+                    if self.event_time[0] is None:
+                        self.plainTextEdit.appendPlainText(f'    Время: весь день')
+                    else:
+                        self.plainTextEdit.appendPlainText(f'    Время: {self.event_time[0]}')
 
-                if len(self.notes) == 0:
-                    self.plainTextEdit.appendPlainText("На этот день заметок нет")
-                else:
-                    for num, note in enumerate(self.notes):
-                        self.plainTextEdit.appendPlainText(f"{num + 1}) {note}")
+                    for note in self.notes:
+                        self.plainTextEdit.appendPlainText(f'    *{note}')
+                    self.plainTextEdit.appendPlainText('')
+            else:
+                self.plainTextEdit.appendPlainText('На этот день событий нет')
 
-            elif self.showBothRadButton.isChecked():  # если выбрано "Показывать всё"
-                self.events = self.cursor.execute("""SELECT id, event_name FROM events WHERE date = ?""",
-                                                (str(self.current_date),)).fetchall()
-                if bool(self.events):
-                    for num, event in enumerate(self.events):
-                        self.notes = self.cursor.execute(f"""SELECT note_name FROM notes WHERE event = ?""",
-                                                        (event[0],))
-                        self.notes = [''.join(i) for i in self.notes]
 
-                        self.plainTextEdit.appendPlainText(f"{num + 1}) {event[1]}")
-                        self.plainTextEdit.appendPlainText(f'    Дата: {str(self.current_date)}')
-                        self.event_time = self.cursor.execute(
-                            """SELECT time FROM events WHERE event_name = ?""", (event[1],)).fetchone()
-                        if self.event_time[0] is None:
-                            self.plainTextEdit.appendPlainText(f'    Время: весь день')
-                        else:
-                            self.plainTextEdit.appendPlainText(f'    Время: {self.event_time[0]}')
-
-                        for note in self.notes:
-                            self.plainTextEdit.appendPlainText(f'    *{note}')
-                        self.plainTextEdit.appendPlainText('')
-                else:
-                    self.plainTextEdit.appendPlainText('На этот день событий нет')
-
-        except Exception:
-            show_message('Ошибка', 'Непредвиденная ошибка')
+        #except Exception:
+            #show_message('Ошибка', 'Непредвиденная ошибка')
 
     def show_all_note(self):  # показать все события со всеми заметками
         try:
