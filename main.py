@@ -124,7 +124,6 @@ class NoteWindow(QMainWindow, Ui_myNotesWindow):  # окно поиска (на�
         self.connection = args[-1]
         self.cursor = self.connection.cursor()
 
-        # self.result = self.cursor.execute("""SELECT event_name FROM events""").fetchall()
         self.result = db_sess.query(Event).all()
         self.selectEventBox.addItems([''.join(i.event_name).rstrip('\n') for i in self.result])
 
@@ -140,8 +139,7 @@ class NoteWindow(QMainWindow, Ui_myNotesWindow):  # окно поиска (на�
             self.plainTextEdit.clear()
             self.current_date = self.calendarWidget.selectedDate().toPyDate()
             self.events = db_sess.query(Event).filter(Event.date == self.current_date)
-            self.notes = db_sess.query(Note).filter(Note.id.in_([event.id for event in self.events]))
-            print(list(self.events))
+            self.notes = db_sess.query(Note).filter(Note.event_id.in_([event.id for event in self.events]))
 
             if self.showOnlyEventsRadButton.isChecked():  # если выбрано "Показывать только события"
 
@@ -194,23 +192,27 @@ class NoteWindow(QMainWindow, Ui_myNotesWindow):  # окно поиска (на�
 
     def show_all_note(self):  # показать все события со всеми заметками
         try:
-            self.events = self.cursor.execute("""SELECT id, event_name, date, time FROM events""").fetchall()
-            for num, event in enumerate(self.events):
-                self.notes = self.cursor.execute(f"""SELECT note_name FROM notes WHERE event = ?""",
-                                                (event[0],))
-                self.notes = [''.join(i) for i in self.notes]
+            self.plainTextEdit.clear()
+            if list(self.result):
+                num = 1
+                for event in self.result:
+                    self.nots = db_sess.query(Note).filter(Note.event_id == event.id)
+                    self.plainTextEdit.appendPlainText(f"{num}) {event.event_name}")
+                    self.plainTextEdit.appendPlainText(f'    Дата: {str(event.date)}')
 
-                self.plainTextEdit.appendPlainText(f"{num + 1}) {event[1]}")
-                self.plainTextEdit.appendPlainText(f'    Дата: {event[2]}')
+                    if event.time is None:
+                        self.plainTextEdit.appendPlainText(f'    Время: весь день')
+                    else:
+                        self.plainTextEdit.appendPlainText(f'    Время: {event.time.strftime("%H:%M")}')
 
-                if event[3] is None:
-                    self.plainTextEdit.appendPlainText(f'    Время: весь день')
-                else:
-                    self.plainTextEdit.appendPlainText(f'    Время: {event[3]}')
+                    if self.nots:
+                        for note in self.nots:
+                            self.plainTextEdit.appendPlainText(f'    *{note.note_name}')
+                    self.plainTextEdit.appendPlainText('')
+                    num += 1
+            else:
+                self.plainTextEdit.appendPlainText('Событий нет')
 
-                for note in self.notes:
-                    self.plainTextEdit.appendPlainText(f'    *{note}')
-                self.plainTextEdit.appendPlainText('')
         except Exception:
             show_message('Ошибка', 'Непредвиденная ошибка')
 
