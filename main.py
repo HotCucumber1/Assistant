@@ -139,9 +139,9 @@ class NoteWindow(QMainWindow, Ui_myNotesWindow):  # окно поиска (на�
         #try:
         self.plainTextEdit.clear()
         self.current_date = self.calendarWidget.selectedDate().toPyDate()
-        if self.showOnlyEventsRadButton.isChecked():  # если выбрано "Показывать только события"
+        self.events = db_sess.query(Event).filter(Event.date == self.current_date)
 
-            self.events = db_sess.query(Event).filter(Event.date == self.current_date)
+        if self.showOnlyEventsRadButton.isChecked():  # если выбрано "Показывать только события"
 
             if not self.events:
                 self.plainTextEdit.appendPlainText("На этот день событий нет")
@@ -154,19 +154,20 @@ class NoteWindow(QMainWindow, Ui_myNotesWindow):  # окно поиска (на�
                         self.plainTextEdit.appendPlainText(f'    Время: весь день')
                     else:
                         self.plainTextEdit.appendPlainText(f'    Время: {event.time.strftime("%H:%M")}')
+                    num += 1
                 self.plainTextEdit.appendPlainText('')
 
         elif self.showOnlyNotesRadButton.isChecked():  # если выбрано "Показывать только заметки"
-            self.notes = self.cursor.execute("""SELECT note_name FROM notes 
-                                                            WHERE event IN (SELECT id FROM events WHERE date = ?)""",
-                                             (str(self.current_date),)).fetchall()
-            self.notes = [i[0] for i in self.notes]
 
-            if len(self.notes) == 0:
+            self.notes = db_sess.query(Note).filter(Note.id.in_([event.id for event in self.events]))
+
+            if not self.notes:
                 self.plainTextEdit.appendPlainText("На этот день заметок нет")
             else:
-                for num, note in enumerate(self.notes):
-                    self.plainTextEdit.appendPlainText(f"{num + 1}) {note}")
+                num = 1
+                for note in self.notes:
+                    self.plainTextEdit.appendPlainText(f"{num}) {note.note_name}")
+                    num += 1
 
         elif self.showBothRadButton.isChecked():  # если выбрано "Показывать всё"
             self.events = self.cursor.execute("""SELECT id, event_name FROM events WHERE date = ?""",
